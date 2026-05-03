@@ -78,8 +78,16 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 
 - Unlike THE FINALS, where results were comparable, both technology implementations clearly beat the native Windows numbers in absolute terms.
 - Reflex and Anti-Lag 2 again perform identically, consistent with our previous findings.
-- CS2's `-vulkan` backend was also tested on Windows. It regresses baseline latency relative to the default backend, and AMD's Anti-Lag 2 does not recover this — it remains slower than Anti-Lag 2 on the default backend.
+- CS2's `-vulkan` backend was also tested on Windows. It regresses baseline latency relative to the default backend, and AMD's Anti-Lag 2 does not recover this - it remains slower than Anti-Lag 2 on the default backend.
 - Mesa's Anti-Lag Vulkan layer again appears to be a no-op, matching our findings from THE FINALS.
+
+## Cyberpunk 2077
+![cyberpunk](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/cyberpunk.png)
+**Results**
+
+- Cyberpunk is an interesting test case: Anti-Lag 2 on Linux appears broken (suspected cause is an application bug). The layer never observes a call to `AntiLagUpdateAMD`, which is required to function. The settings UI also lacks an explicit Anti-Lag 2 toggle. To complicate things further, Anti-Lag 2 is enabled by default on Windows.
+- On Windows, Anti-Lag 2 can be disabled by holding right ctrl with the debug overlay open (shift+alt+f).
+- Despite no Linux Anti-Lag implementation working correctly, our Reflex path still exceeds native Windows Anti-Lag 2 in absolute latency. Naturally, this path should be preferred for this application.
 
 # License
 
