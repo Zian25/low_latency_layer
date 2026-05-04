@@ -66,7 +66,7 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 
 ## THE FINALS
 ![tf](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/the_finals.png)
-**Results**
+**Comments**
 
 - We included comparisons against AMD's proprietary DX12 implementation of Anti-Lag 2 on Windows. The results suggest latency matches or beats native Windows numbers.
 - We can directly compare our implementation of Reflex and Anti-Lag technologies - they appear to perform identically as both are in line with AMD's proprietary reference implementation of Anti-Lag 2.
@@ -74,7 +74,7 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 
 ## Counter-Strike 2
 ![cs2](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/cs2.png)
-**Results**
+**Comments**
 
 - Unlike THE FINALS, where results were comparable, both technology implementations clearly beat the native Windows numbers in absolute terms.
 - Reflex and Anti-Lag 2 again perform identically, consistent with our previous findings.
@@ -83,11 +83,19 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 
 ## Cyberpunk 2077
 ![cyberpunk](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/cyberpunk.png)
-**Results**
+**Comments**
 
 - Cyberpunk is an interesting test case: Anti-Lag 2 on Linux appears broken (suspected cause is an application bug). The layer never observes a call to `AntiLagUpdateAMD`, which is required to function. The settings UI also lacks an explicit Anti-Lag 2 toggle. To complicate things further, Anti-Lag 2 is enabled by default on Windows.
 - On Windows, Anti-Lag 2 can be disabled by holding right ctrl with the debug overlay open (shift+alt+f).
 - Despite no Linux Anti-Lag implementation working correctly, our Reflex path still exceeds native Windows Anti-Lag 2 in absolute latency. Naturally, this path should be preferred for this application.
+
+## Resident Evil Requiem
+![re9](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/re9.png)
+**Comments**
+
+- Resident Evil Requiem doesn't support Anti-Lag 2 but does support Reflex. We compare the closest Windows alternative for AMD users - Anti-Lag 1 - to our 'native' Reflex support.
+- Anti-Lag 1 on Windows performed similarly to the native Linux baseline.
+- Our Reflex implementation outperformed every other tested method in absolute latency.
 
 # License
 
