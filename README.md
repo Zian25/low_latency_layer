@@ -6,7 +6,7 @@ By providing hardware-agnostic implementations of the `VK_NV_low_latency2` and `
 
 The layer also eliminates a hardware support disparity as considerably more applications support NVIDIA's Reflex than AMD's Anti-Lag.
 
-Benchmarks suggest the layer performs as well as or better than the proprietary Windows implementations on equivalent hardware. [More details and benchmarks are available here.](#testing-and-benchmarks)
+Benchmarks suggest the layer performs as well as or better than the proprietary Windows implementations on equivalent hardware. Some applications may misbehave. [More details and benchmarks are available here.](#testing-and-benchmarks)
 
 # Dependencies
 
@@ -96,6 +96,14 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 - Resident Evil Requiem doesn't support Anti-Lag 2 but does support Reflex. We compare the closest Windows alternative for AMD users - Anti-Lag 1 - to our 'native' Reflex support.
 - Anti-Lag 1 on Windows performed similarly to the native Linux baseline.
 - Our Reflex implementation outperformed every other tested method in absolute latency.
+
+## Marvel Rivals
+![marvel_rivals](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/marvel_rivals.png)
+**Comments**
+
+- Marvel Rivals is a contrasting result where Linux-based latency reduction technologies fall significantly behind their Windows counterparts.
+- AMD's Anti-Lag 2 implementation on Windows beats both our Reflex and Anti-Lag 2 implementations. The cause for this is under investigation. Our Reflex and Anti-Lag 2 implementations use vastly different methods of tracking Vulkan queue submissions yet arrive at the same poor result.
+- Comparison with an Nvidia card's proprietary Reflex implementation on Linux would be extremely useful as a data point here.
 
 # License
 
