@@ -188,7 +188,7 @@ const VkCommandBuffer& TimestampPool::Handle::get_end_buffer() const {
     return command_buffers[this->query_index + 1];
 }
 
-std::uint64_t
+DeviceClock::time_point
 TimestampPool::Handle::await_time_impl(const std::uint32_t offset) const {
 
     const auto& context = this->timestamp_pool.queue_context.device;
@@ -204,11 +204,17 @@ TimestampPool::Handle::await_time_impl(const std::uint32_t offset) const {
             VK_QUERY_RESULT_WAIT_BIT));
     assert(query_result[1]);
 
-    return query_result[0];
+    const auto& ticks = query_result[0];
+    assert(context.clock);
+    return context.clock->ticks_to_time(ticks);
 }
 
-void TimestampPool::Handle::await_start() const { this->await_time_impl(0); }
-void TimestampPool::Handle::await_end() const { this->await_time_impl(1); }
+DeviceClock::time_point TimestampPool::Handle::await_start() const {
+    return this->await_time_impl(0);
+}
+DeviceClock::time_point TimestampPool::Handle::await_end() const {
+    return this->await_time_impl(1);
+}
 
 std::optional<std::uint64_t>
 TimestampPool::Handle::has_time_impl(const std::uint32_t offset) const {
