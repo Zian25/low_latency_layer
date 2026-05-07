@@ -5,24 +5,20 @@
 #include <vulkan/vulkan_core.h>
 
 #include <cassert>
+#include <functional>
 #include <time.h>
 
 namespace low_latency {
 
 DeviceClock::DeviceClock(const DeviceContext& context) : device(context) {
     this->calibrate();
+    this->calibration_thread =
+        std::jthread{std::bind_front(&DeviceClock::do_calibration, this)};
 }
 
-DeviceClock::~DeviceClock() {}
-
-DeviceClock::time_point_t DeviceClock::now() {
-    auto ts = timespec{};
-    if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
-        throw errno;
-    }
-
-    return time_point_t{std::chrono::seconds{ts.tv_sec} +
-                        std::chrono::nanoseconds{ts.tv_nsec}};
+DeviceClock::~DeviceClock() {
+    calibration_thread.request_stop();
+    cv.notify_one();
 }
 
 void DeviceClock::calibrate() {
@@ -38,18 +34,42 @@ void DeviceClock::calibrate() {
     };
     auto calibrated_result = CalibratedResult{};
 
+    // Don't write directly to error bound here, we haven't locked yet.
+    auto local_error_bound = std::uint64_t{};
     THROW_NOT_VKSUCCESS(device.vtable.GetCalibratedTimestampsKHR(
         device.device, 2, std::data(infos), &calibrated_result.device,
-        &this->error_bound));
+        &local_error_bound));
 
+    const auto lock = std::scoped_lock{this->mutex};
     this->device_ticks = calibrated_result.device;
     this->host_ns = calibrated_result.host;
+    this->error_bound = local_error_bound;
 }
 
-DeviceClock::time_point_t
-DeviceClock::ticks_to_time(const std::uint64_t& ticks) const {
+void DeviceClock::do_calibration(const std::stop_token stoken) {
+    while (!stoken.stop_requested()) {
+        this->calibrate();
+        auto lock = std::shared_lock{this->mutex};
+        this->cv.wait_for(lock, stoken, CALIBRATION_PERIOD,
+                          [&] { return stoken.stop_requested(); });
+    }
+}
+
+DeviceClock::time_point DeviceClock::now() {
+    auto ts = timespec{};
+    if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+        throw errno;
+    }
+
+    return time_point{std::chrono::seconds{ts.tv_sec} +
+                      std::chrono::nanoseconds{ts.tv_nsec}};
+}
+
+DeviceClock::time_point DeviceClock::ticks_to_time(const std::uint64_t& ticks) {
     const auto& pd = device.physical_device.properties;
     const auto ns_tick = static_cast<double>(pd->limits.timestampPeriod);
+
+    const auto lock = std::shared_lock{this->mutex};
 
     const auto diff = [&]() -> auto {
         auto a = this->device_ticks;
@@ -67,7 +87,7 @@ DeviceClock::ticks_to_time(const std::uint64_t& ticks) const {
     const auto diff_nsec =
         static_cast<std::int64_t>(static_cast<double>(diff) * ns_tick + 0.5);
     const auto delta_ns = static_cast<std::int64_t>(this->host_ns) + diff_nsec;
-    return time_point_t{std::chrono::nanoseconds(delta_ns)};
+    return time_point{std::chrono::nanoseconds(delta_ns)};
 }
 
 } // namespace low_latency
