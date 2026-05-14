@@ -23,9 +23,12 @@ struct InstanceContext final : public Context {
     std::unordered_map<void*, std::shared_ptr<PhysicalDeviceContext>>
         physical_devices{};
 
+    const bool is_simulation_decoupled{};
+
   public:
     explicit InstanceContext(const LayerContext& parent_context,
                              const VkInstance& instance,
+                             const VkInstanceCreateInfo& create_info,
                              VkuInstanceDispatchTable&& vtable);
     virtual ~InstanceContext();
 };

@@ -39,16 +39,17 @@ By default, the layer exposes the `VK_AMD_anti_lag` device extension. For Linux 
 
 | Variable | Description |
 | :--- | :--- |
-| `LOW_LATENCY_EXPOSE_REFLEX` | Set to `1` to expose `VK_NV_low_latency2` instead of `VK_AMD_anti_lag`. |
-| `LOW_LATENCY_SPOOF_NVIDIA` | Set to `1` to report the device as an NVIDIA GPU to the application, regardless of actual hardware. This is necessary for many applications to expose Reflex as an option. It _might_ be beneficial to keep this off when the application allows it. |
-| `DISABLE_LOW_LATENCY` | Set to `1` to disable the layer. |
+| `LOW_LATENCY_LAYER_REFLEX` | Set to `1` to expose `VK_NV_low_latency2` instead of `VK_AMD_anti_lag`. |
+| `LOW_LATENCY_LAYER_SPOOF_NVIDIA` | Set to `1` to report the device as an NVIDIA GPU to the application, regardless of actual hardware. This is necessary for many applications to expose Reflex as an option. It _might_ be beneficial to keep this off when the application allows it. |
+| `LOW_LATENCY_LAYER_FORCE_DECOUPLED` | Set to `1` to force mitigation of a decoupled simulation and render queue. Refer to `delay_controller.hh` for more details. Do not use outside of debugging - this will hurt latency in most applications. |
+| `DISABLE_LOW_LATENCY_LAYER` | Expose to disable the layer. |
 
 
 For Proton-based applications, you must enable NVAPI support alongside the layer's configuration. Use the `PROTON_FORCE_NVAPI=1` environment variable to force this support regardless of your hardware.
 
 **Steam launch options example:**
 ```
-PROTON_FORCE_NVAPI=1 LOW_LATENCY_EXPOSE_REFLEX=1 LOW_LATENCY_SPOOF_NVIDIA=1 %command%
+PROTON_FORCE_NVAPI=1 LOW_LATENCY_LAYER_REFLEX=1 LOW_LATENCY_LAYER_SPOOF_NVIDIA=1 %command%
 ```
 
 The 'Boost' mode of Reflex is supported but is functionally identical to 'On' - the layer treats both modes identically.

@@ -28,10 +28,9 @@ class SwapchainMonitor final {
     };
     std::deque<PendingSignal> pending_signals{};
 
-    DelayController delay_controller{};
-
-  protected:
     const DeviceContext& device;
+
+    DelayController delay_controller;
 
     std::mutex mutex{};
     std::chrono::microseconds present_delay{};

@@ -88,9 +88,10 @@ CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
     const auto lock = std::scoped_lock{layer_context.mutex};
     assert(!layer_context.contexts.contains(key));
 
+    assert(pCreateInfo);
     layer_context.contexts.try_emplace(
-        key, std::make_shared<InstanceContext>(layer_context, *pInstance,
-                                               std::move(vtable)));
+        key, std::make_shared<InstanceContext>(
+                 layer_context, *pInstance, *pCreateInfo, std::move(vtable)));
 
     return VK_SUCCESS;
 }

@@ -6,7 +6,7 @@
 namespace low_latency {
 
 SwapchainMonitor::SwapchainMonitor(const DeviceContext& device)
-    : device(device),
+    : device(device), delay_controller(device.instance.is_simulation_decoupled),
       monitor_worker(std::bind_front(&SwapchainMonitor::do_monitor, this)) {}
 
 SwapchainMonitor::~SwapchainMonitor() {}

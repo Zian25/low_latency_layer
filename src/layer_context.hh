@@ -48,13 +48,18 @@ using dispatch_context_t = typename context_for_t<D>::context;
 
 class LayerContext final : public Context {
   private:
-    // If this is not null and set to 1 then VK_NV_low_latency2 should be
-    // provided instead of VK_AMD_anti_lag.
-    static constexpr auto EXPOSE_REFLEX_ENV = "LOW_LATENCY_EXPOSE_REFLEX";
+    // VK_NV_low_latency2 should be provided instead of VK_AMD_anti_lag.
+    static constexpr auto REFLEX_ENV = "LOW_LATENCY_LAYER_REFLEX";
 
-    // If this is not null and set to 1 then the card's vendor, id, and device
-    // name will be modified to appear as a NVIDIA card.
-    static constexpr auto SPOOF_NVIDIA_ENV = "LOW_LATENCY_SPOOF_NVIDIA";
+    // The card's vendor, id, and device name will be modified to appear as a
+    // NVIDIA card.
+    static constexpr auto SPOOF_NVIDIA_ENV = "LOW_LATENCY_LAYER_SPOOF_NVIDIA";
+
+    // Additional delays for decoupled simulation should be forced on
+    // (delay_controller). This is usually automatically handled on a
+    // per-application basis.
+    static constexpr auto FORCE_DECOUPLED_ENV =
+        "LOW_LATENCY_LAYER_FORCE_DECOUPLED";
 
   public:
     // Constants for spoofing.
@@ -63,8 +68,9 @@ class LayerContext final : public Context {
     static constexpr auto NVIDIA_DEVICE_NAME = "NVIDIA GeForce RTX 5090";
 
   public:
-    const bool should_expose_reflex{false};
-    const bool should_spoof_nvidia{false};
+    const bool should_expose_reflex{};
+    const bool should_spoof_nvidia{};
+    const bool should_force_decoupled{};
 
     std::shared_mutex mutex{};
     std::unordered_map<void*, std::shared_ptr<Context>> contexts{};

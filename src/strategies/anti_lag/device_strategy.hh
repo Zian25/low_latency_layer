@@ -20,7 +20,7 @@ class AntiLagDeviceStrategy final : public DeviceStrategy {
     std::optional<std::uint64_t> frame_index{};
     bool is_enabled{};
 
-    DelayController delay_controller{};
+    DelayController delay_controller;
 
   public:
     explicit AntiLagDeviceStrategy(DeviceContext& device);

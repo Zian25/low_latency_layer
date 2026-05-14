@@ -8,7 +8,8 @@
 namespace low_latency {
 
 AntiLagDeviceStrategy::AntiLagDeviceStrategy(DeviceContext& device)
-    : DeviceStrategy(device) {}
+    : DeviceStrategy(device),
+      delay_controller(device.instance.is_simulation_decoupled) {}
 
 AntiLagDeviceStrategy::~AntiLagDeviceStrategy() {}
 

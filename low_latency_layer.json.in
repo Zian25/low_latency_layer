@@ -12,7 +12,7 @@
             "vkGetDeviceProcAddr": "LowLatency_GetDeviceProcAddr"
         },
         "disable_environment": {
-            "DISABLE_LOW_LATENCY": "1"
+            "DISABLE_LOW_LATENCY_LAYER": "1"
         }
     }
 }

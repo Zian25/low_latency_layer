@@ -38,6 +38,8 @@ namespace low_latency {
 // 'are we there'.
 class DelayController {
   private:
+    const bool is_simulation_decoupled{};
+
     struct frame_info final {
         // The distance between the previous frame's release and when we entered
         // delay(). Doesn't include min_delay, jitter, drain or frametime.
@@ -55,7 +57,7 @@ class DelayController {
     DeviceClock::duration drain{};
 
   public:
-    explicit DelayController();
+    explicit DelayController(const bool is_simulation_decoupled);
     DelayController(const DelayController&) = delete;
     DelayController(DelayController&&) = delete;
     DelayController& operator=(const DelayController&) = delete;

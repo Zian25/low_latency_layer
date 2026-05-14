@@ -4,7 +4,8 @@
 
 namespace low_latency {
 
-DelayController::DelayController() {}
+DelayController::DelayController(const bool is_simulation_decoupled)
+    : is_simulation_decoupled(is_simulation_decoupled) {}
 
 DelayController::~DelayController() {}
 
@@ -20,9 +21,20 @@ void DelayController::delay(const DeviceClock::duration& min_delay) {
 
     const auto frametime = DeviceClock::now() - this->previous_frame->release;
 
-    // Apply frame limits.
-    while (DeviceClock::now() < this->previous_frame->release + min_delay) {
-        std::this_thread::yield();
+    // Apply frame limits if nonzero min_delay.
+    if (min_delay != 0ns) {
+        while (DeviceClock::now() < this->previous_frame->release + min_delay) {
+            std::this_thread::yield();
+        }
+    }
+
+    // Early out and don't apply jitter or delays if we know the application has
+    // coupled simulation and render.
+    if (!this->is_simulation_decoupled) {
+        this->previous_frame.emplace(frame_info{
+            .frametime = frametime,
+            .release = DeviceClock::now(),
+        });
     }
 
     // Apply jitter and drain.
