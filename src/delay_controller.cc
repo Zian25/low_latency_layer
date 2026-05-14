@@ -35,6 +35,7 @@ void DelayController::delay(const DeviceClock::duration& min_delay) {
             .frametime = frametime,
             .release = DeviceClock::now(),
         });
+        return;
     }
 
     // Apply jitter and drain.
