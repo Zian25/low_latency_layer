@@ -6,7 +6,7 @@ By providing hardware-agnostic implementations of the `VK_NV_low_latency2` and `
 
 The layer also eliminates a hardware support disparity as considerably more applications support NVIDIA's Reflex than AMD's Anti-Lag.
 
-Benchmarks suggest the layer performs as well as or better than the proprietary Windows implementations on equivalent hardware. Some applications may misbehave. [More details and benchmarks are available here.](#testing-and-benchmarks)
+Benchmarks suggest the layer performs as well as or better than the proprietary Windows implementations on the same hardware. [More details and benchmarks are available here.](#testing-and-benchmarks)
 
 # Dependencies
 
@@ -41,7 +41,7 @@ By default, the layer exposes the `VK_AMD_anti_lag` device extension. For Linux 
 | :--- | :--- |
 | `LOW_LATENCY_LAYER_REFLEX` | Set to `1` to expose `VK_NV_low_latency2` instead of `VK_AMD_anti_lag`. |
 | `LOW_LATENCY_LAYER_SPOOF_NVIDIA` | Set to `1` to report the device as an NVIDIA GPU to the application, regardless of actual hardware. This is necessary for many applications to expose Reflex as an option. It _might_ be beneficial to keep this off when the application allows it. |
-| `LOW_LATENCY_LAYER_FORCE_DECOUPLED` | Set to `1` to force mitigation of a decoupled simulation and render queue. Refer to `delay_controller.hh` for more details. Do not use outside of debugging - this will hurt latency in most applications. |
+| `LOW_LATENCY_LAYER_FORCE_DECOUPLED` | Set to `1` to force mitigation of a decoupled simulation and render queue. This is disabled by default - only enabled for Marvel Rivals. Refer to `delay_controller.hh` for more details. Do not use outside of debugging - this will hurt latency in most applications. |
 | `DISABLE_LOW_LATENCY_LAYER` | Expose to disable the layer. |
 
 
@@ -102,9 +102,9 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 ![marvel_rivals](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/marvel_rivals.png)
 **Comments**
 
-- Marvel Rivals is a contrasting result where Linux-based latency reduction technologies fall significantly behind their Windows counterparts.
-- AMD's Anti-Lag 2 implementation on Windows beats both our Reflex and Anti-Lag 2 implementations. The cause for this is under investigation. Our Reflex and Anti-Lag 2 implementations use vastly different methods of tracking Vulkan queue submissions yet arrive at the same poor result.
-- Comparison with an Nvidia card's proprietary Reflex implementation on Linux would be extremely useful as a data point here.
+- Marvel Rivals was a pain point during development. It has a decoupled simulation and render queue and required some careful statistics and additional delays (see `delay_controller.hh`) to match the Windows implementation.
+- I believe that the use of Reflex/Anti-Lag while providing a decoupled simulation and render queue should be considered an application bug. Marvel Rivals would achieve significantly greater latency reductions if the developers tightly coupled their simulation and render pipelines. This would make our statistics-based approach unnecessary. This is likely a single configuration option in UE5.
+- This additional delay approach is enabled by default for this application only, but can be forced on with `LOW_LATENCY_LAYER_FORCE_DECOUPLED=1`.
 
 # License
 
