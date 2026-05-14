@@ -46,8 +46,8 @@ class DeviceClock final {
     DeviceClock(const DeviceContext& device);
     DeviceClock(const DeviceClock&) = delete;
     DeviceClock(DeviceClock&&) = delete;
-    DeviceClock operator=(const DeviceClock&) = delete;
-    DeviceClock operator=(DeviceClock&&) = delete;
+    DeviceClock& operator=(const DeviceClock&) = delete;
+    DeviceClock& operator=(DeviceClock&&) = delete;
     ~DeviceClock();
 
   public:

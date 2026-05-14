@@ -46,8 +46,8 @@ class SwapchainMonitor final {
     SwapchainMonitor(const DeviceContext& device);
     SwapchainMonitor(const SwapchainMonitor&) = delete;
     SwapchainMonitor(SwapchainMonitor&&) = delete;
-    SwapchainMonitor operator=(const SwapchainMonitor&) = delete;
-    SwapchainMonitor operator=(SwapchainMonitor&&) = delete;
+    SwapchainMonitor& operator=(const SwapchainMonitor&) = delete;
+    SwapchainMonitor& operator=(SwapchainMonitor&&) = delete;
     ~SwapchainMonitor();
 
   public:

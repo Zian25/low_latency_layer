@@ -10,8 +10,8 @@ class Context {
     Context();
     Context(const Context& context) = delete;
     Context(Context&& context) = delete;
-    Context operator=(const Context& context) = delete;
-    Context operator=(Context&& context) = delete;
+    Context& operator=(const Context& context) = delete;
+    Context& operator=(Context&& context) = delete;
     virtual ~Context();
 };
 

@@ -32,8 +32,8 @@ class QueueContext final : public Context {
         CommandPoolOwner(const QueueContext& queue);
         CommandPoolOwner(const CommandPoolOwner&) = delete;
         CommandPoolOwner(CommandPoolOwner&&) = delete;
-        CommandPoolOwner operator=(const CommandPoolOwner&) = delete;
-        CommandPoolOwner operator=(CommandPoolOwner&&) = delete;
+        CommandPoolOwner& operator=(const CommandPoolOwner&) = delete;
+        CommandPoolOwner& operator=(CommandPoolOwner&&) = delete;
         ~CommandPoolOwner();
 
       public:

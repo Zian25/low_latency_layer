@@ -60,8 +60,8 @@ class TimestampPool final {
             QueryPoolOwner(const QueueContext& queue_context);
             QueryPoolOwner(const QueryPoolOwner&) = delete;
             QueryPoolOwner(QueryPoolOwner&&) = delete;
-            QueryPoolOwner operator=(const QueryPoolOwner&) = delete;
-            QueryPoolOwner operator=(QueryPoolOwner&&) = delete;
+            QueryPoolOwner& operator=(const QueryPoolOwner&) = delete;
+            QueryPoolOwner& operator=(QueryPoolOwner&&) = delete;
             ~QueryPoolOwner();
 
           public:
@@ -77,8 +77,8 @@ class TimestampPool final {
             CommandBuffersOwner(const QueueContext& queue_context);
             CommandBuffersOwner(const CommandBuffersOwner&) = delete;
             CommandBuffersOwner(CommandBuffersOwner&&) = delete;
-            CommandBuffersOwner operator=(const CommandBuffersOwner&) = delete;
-            CommandBuffersOwner operator=(CommandBuffersOwner&&) = delete;
+            CommandBuffersOwner& operator=(const CommandBuffersOwner&) = delete;
+            CommandBuffersOwner& operator=(CommandBuffersOwner&&) = delete;
             ~CommandBuffersOwner();
         };
 
@@ -91,8 +91,8 @@ class TimestampPool final {
         QueryChunk(const QueueContext& queue_context);
         QueryChunk(const QueryChunk& handle) = delete;
         QueryChunk(QueryChunk&&) = delete;
-        QueryChunk operator=(const QueryChunk& handle) = delete;
-        QueryChunk operator=(QueryChunk&&) = delete;
+        QueryChunk& operator=(const QueryChunk& handle) = delete;
+        QueryChunk& operator=(QueryChunk&&) = delete;
         ~QueryChunk();
     };
 
@@ -121,9 +121,9 @@ class TimestampPool final {
         Handle(TimestampPool& timestamp_pool, QueryChunk& query_chunk,
                const std::uint32_t query_index);
         Handle(const Handle& handle) = delete;
-        Handle operator=(const Handle& handle) = delete;
         Handle(Handle&&) = delete;
         Handle& operator=(Handle&&) = delete;
+        Handle& operator=(const Handle& handle) = delete;
         ~Handle();
 
       public:
@@ -165,8 +165,8 @@ class TimestampPool final {
     TimestampPool(QueueContext& queue_context);
     TimestampPool(const TimestampPool&) = delete;
     TimestampPool(TimestampPool&&) = delete;
-    TimestampPool operator=(const TimestampPool&) = delete;
-    TimestampPool operator=(TimestampPool&&) = delete;
+    TimestampPool& operator=(const TimestampPool&) = delete;
+    TimestampPool& operator=(TimestampPool&&) = delete;
     ~TimestampPool();
 
   public:
