@@ -106,6 +106,13 @@ We used Gentoo running KDE Plasma 6.6. Direct scanout was enabled throughout the
 - I believe that the use of Reflex/Anti-Lag while providing a decoupled simulation and render queue should be considered an application bug. Marvel Rivals would achieve significantly greater latency reductions if the developers tightly coupled their simulation and render pipelines. This would make our statistics-based approach unnecessary. This is likely a single configuration option in UE5.
 - This additional delay approach is enabled by default for this application only, but can be forced on with `LOW_LATENCY_LAYER_FORCE_DECOUPLED=1`.
 
+## Overwatch 2
+![overwatch2](https://raw.githubusercontent.com/nJ3ahxac/files/main/low_latency_layer/overwatch2.png)
+
+- Like Resident Evil Requiem, Overwatch 2 supports Reflex but not Anti-Lag 2, so we again compare against Anti-Lag 1 as the closest Windows alternative for AMD users.
+- Anti-Lag 1 on Windows tracked the native Linux baseline closely, offering little benefit.
+- Our Reflex path performed well, comfortably ahead of the other tested configurations.
+
 # License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
