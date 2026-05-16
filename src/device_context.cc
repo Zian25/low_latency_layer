@@ -18,7 +18,6 @@ DeviceContext::DeviceContext(InstanceContext& parent_instance,
       was_layer_enabled(was_layer_enabled), device(device),
       vtable(std::move(vtable)) {
 
-    // Only create our clock if we were asked to do anything.
     if (!this->was_layer_enabled) {
         return;
     }

@@ -13,17 +13,15 @@ namespace low_latency {
 class LayerContext;
 class PhysicalDeviceContext;
 
-struct InstanceContext final : public Context {
-
+class InstanceContext final : public Context {
+  public:
     const LayerContext& layer;
-
     const VkInstance instance{};
     const VkuInstanceDispatchTable vtable{};
+    const bool is_simulation_decoupled{};
 
     std::unordered_map<void*, std::shared_ptr<PhysicalDeviceContext>>
         physical_devices{};
-
-    const bool is_simulation_decoupled{};
 
   public:
     explicit InstanceContext(const LayerContext& parent_context,

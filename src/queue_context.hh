@@ -21,7 +21,8 @@ class QueueContext final : public Context {
     DeviceContext& device;
 
     const VkQueue queue{};
-    const std::uint32_t queue_family_index{};
+    const std::uint32_t family_index{};
+    const VkQueueFamilyProperties& properties;
 
     struct CommandPoolOwner final {
       private:

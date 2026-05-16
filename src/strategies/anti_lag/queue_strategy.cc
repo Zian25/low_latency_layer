@@ -6,10 +6,7 @@
 namespace low_latency {
 
 AntiLagQueueStrategy::AntiLagQueueStrategy(QueueContext& queue)
-    : QueueStrategy(queue),
-      queue_flags((*queue.device.physical_device
-                        .queue_properties)[queue.queue_family_index]
-                      .queueFamilyProperties.queueFlags) {}
+    : QueueStrategy(queue) {}
 
 AntiLagQueueStrategy::~AntiLagQueueStrategy() {}
 
@@ -53,7 +50,7 @@ bool AntiLagQueueStrategy::should_track_submissions() const {
     // IMPORTANT: exclude non graphical queues! This avoids async work being
     // occasionally pulled into our timings and causing a measurable latency
     // penalty relative to our Reflex implementation.
-    if (!(this->queue_flags & VK_QUEUE_GRAPHICS_BIT)) {
+    if (!(this->queue.properties.queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
         return false;
     }
 

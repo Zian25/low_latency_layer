@@ -6,8 +6,6 @@
 #include "strategies/low_latency2/queue_strategy.hh"
 #include "timestamp_pool.hh"
 
-#include <span>
-
 #include <vulkan/vulkan_core.h>
 
 namespace low_latency {
@@ -21,7 +19,7 @@ QueueContext::CommandPoolOwner::CommandPoolOwner(const QueueContext& queue)
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
                  VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = queue.queue_family_index,
+        .queueFamilyIndex = queue.family_index,
     };
 
     THROW_NOT_VKSUCCESS(device_context.vtable.CreateCommandPool(
@@ -35,11 +33,13 @@ QueueContext::CommandPoolOwner::~CommandPoolOwner() {
 }
 
 QueueContext::QueueContext(DeviceContext& device, const VkQueue& queue,
-                           const std::uint32_t& queue_family_index)
-    : device(device), queue(queue), queue_family_index(queue_family_index) {
+                           const std::uint32_t& qfi)
+    : device(device), queue(queue), family_index(qfi),
+      properties((*device.physical_device.queue_properties)[qfi]) {
 
-    // Only construct things if we actually support our operations.
-    if (!device.physical_device.supports_required_extensions) {
+    assert(qfi < std::size(*device.physical_device.queue_properties));
+
+    if (!this->device.was_layer_enabled) {
         return;
     }
 
@@ -56,27 +56,14 @@ QueueContext::QueueContext(DeviceContext& device, const VkQueue& queue,
 QueueContext::~QueueContext() {}
 
 bool QueueContext::should_inject_timestamps() const {
-    const auto& physical_device = this->device.physical_device;
-
-    // Our layer is a no-op here if we don't support it.
-    if (!physical_device.supports_required_extensions) {
-        return false;
-    }
-
-    // Don't bother injecting timestamps during queue submission if we
-    // aren't planning on doing anything anyway.
     if (!this->device.was_layer_enabled) {
         return false;
     }
 
-    assert(physical_device.queue_properties);
-    const auto& queue_props = *physical_device.queue_properties;
-    assert(this->queue_family_index < std::size(queue_props));
-
-    const auto& props = queue_props[this->queue_family_index];
     // Probably need at least 64, don't worry about it just yet and just ensure
-    // it's not zero (because that will cause a crash if we inject).
-    return props.queueFamilyProperties.timestampValidBits;
+    // it's not zero (because that will cause a crash if we inject). We don't
+    // actually read timestamps anywhere yet so this is fine.
+    return this->properties.timestampValidBits;
 }
 
 } // namespace low_latency

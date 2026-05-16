@@ -25,16 +25,18 @@ class DeviceContext;
 
 // A timestamp pool manages blocks of timestamp query pools, hands them out when
 // requested, and allocates more when (if) we run out. It _should_ be thread
-// safe.
-// Usage:
+// safe. Usage:
 //     1. Get handle with .acquire().
-//     2. Write start/end timestamp operations with the handle's pool and index
-//        into the provided command buffer.
-//     3. Grab the time, or wait until it's ready, using get_time or await_time
-//        respectively.
-//     4. Destruct the handle to return the key to the pool. The pool handles,
-//        via an async reaper thread, when the actual handle's contents can be
-//        reused as they must be alive until vulkan is done with them.
+//     2. Use its provided head/tail command buffers in a queue submission.
+//        These commands write timing information for TOP_OF_PIPE_BIT and
+//        BOTTOM_OF_PIPE_BIT respectively.
+//     3. If the queue submission succeeds, set was_submitted to true on the
+//        handle. This tells the destructor that it needs to wait until the
+//        timestamp is written before allowing reuse.
+//     4. Grab the time, or wait until it's ready.
+//     5. Destruct the handle to return the key to the pool. The pool handles
+//        when the actual handle's contents can be reused as they must be alive
+//        until vulkan is done with them.
 class TimestampPool final {
   private:
     QueueContext& queue_context;
@@ -98,10 +100,10 @@ class TimestampPool final {
 
   public:
     // A handle represents a VkCommandBuffer and a query index.
-    // It represents represents and provides both a start and end command
-    // buffer, which can attach start/end timing information to submissions.
-    // Once the Handle destructs the query index will be returned to the parent
-    // pool - but crucially only when Vulkan is done with it.
+    // It provides both a start and end command buffer, which can attach
+    // start/end timing information to submissions. Once the Handle destructs
+    // the query index will be returned to the parent pool - but crucially only
+    // when Vulkan is done with it.
     struct Handle final {
       private:
         friend class TimestampPool;
@@ -115,7 +117,7 @@ class TimestampPool final {
         // If a queue submit allocates a handle, but fails before this is set,
         // then the reaper must skip await_end as the queries were reset but
         // never written (avoiding a hang).
-        std::atomic<bool> was_submitted{false};
+        std::atomic<bool> was_submitted{};
 
       public:
         explicit Handle(TimestampPool& timestamp_pool, QueryChunk& query_chunk,

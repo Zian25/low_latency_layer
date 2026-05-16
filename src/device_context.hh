@@ -24,7 +24,8 @@ class DeviceContext final : public Context {
     InstanceContext& instance;
     PhysicalDeviceContext& physical_device;
     // Whether or not we were asked to do NV_VK_LowLatency2 or VK_AMD_anti_lag
-    // at the device level.
+    // at the device level. This implies the physical_device's
+    // supports_required_extensions was true (enforced in createDevice).
     const bool was_layer_enabled{};
     const VkDevice device{};
     const VkuDeviceDispatchTable vtable{};
