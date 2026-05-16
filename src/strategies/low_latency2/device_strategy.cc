@@ -2,8 +2,8 @@
 #include "device_context.hh"
 #include "queue_strategy.hh"
 
-#include "helper.hh"
 #include <mutex>
+#include <vulkan/utility/vk_struct_helper.hpp>
 #include <vulkan/vulkan_core.h>
 
 namespace low_latency {
@@ -22,8 +22,10 @@ void LowLatency2DeviceStrategy::notify_create_swapchain(
     // wants pacing. VkSwapchainLatencyCreateInfoNV can override this, but
     // apps like CS2 recreate swapchains without it (apparent app bug).
     auto was_low_latency_requested = true;
-    if (const auto slci = find_next<VkSwapchainLatencyCreateInfoNV>(
-            &info, VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV);
+
+    if (const auto slci =
+            vku::FindStructInPNextChain<VkSwapchainLatencyCreateInfoNV>(
+                info.pNext);
         slci) {
 
         was_low_latency_requested = slci->latencyModeEnable;

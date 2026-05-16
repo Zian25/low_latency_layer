@@ -1,9 +1,9 @@
 #include "queue_strategy.hh"
 #include "device_context.hh"
 #include "device_strategy.hh"
-#include "helper.hh"
 #include "queue_context.hh"
 
+#include <vulkan/utility/vk_struct_helper.hpp>
 #include <vulkan/vulkan_core.h>
 
 namespace low_latency {
@@ -20,8 +20,9 @@ static void notify_submit_impl(LowLatency2QueueStrategy& strategy,
 
     // It's actually not a requirement that we have this present id.
     const auto present_id = [&]() -> std::uint64_t {
-        const auto lspi = find_next<VkLatencySubmissionPresentIdNV>(
-            &submit, VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV);
+        const auto lspi =
+            vku::FindStructInPNextChain<VkLatencySubmissionPresentIdNV>(
+                submit.pNext);
         return lspi ? lspi->presentID : 0;
     }();
 
@@ -64,8 +65,7 @@ void LowLatency2QueueStrategy::notify_submit(
 
 void LowLatency2QueueStrategy::notify_present(const VkPresentInfoKHR& present) {
 
-    const auto pid =
-        find_next<VkPresentIdKHR>(&present, VK_STRUCTURE_TYPE_PRESENT_ID_KHR);
+    const auto pid = vku::FindStructInPNextChain<VkPresentIdKHR>(present.pNext);
 
     const auto device_strategy = dynamic_cast<LowLatency2DeviceStrategy*>(
         this->queue.device.strategy.get());

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <vulkan/utility/vk_dispatch_table.h>
+#include <vulkan/utility/vk_struct_helper.hpp>
 #include <vulkan/vk_layer.h>
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan.h>
@@ -16,7 +17,6 @@
 
 #include "device_clock.hh"
 #include "device_context.hh"
-#include "helper.hh"
 #include "instance_context.hh"
 #include "layer_context.hh"
 #include "queue_context.hh"
@@ -37,8 +37,22 @@ static VKAPI_ATTR VkResult VKAPI_CALL
 CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
 
-    const auto link_info = find_link<VkLayerInstanceCreateInfo>(
-        pCreateInfo, VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO);
+    const auto link_info = [&]() -> auto {
+        for (auto i = static_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+             i; i = i->pNext) {
+            if (i->sType != VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO) {
+                continue;
+            }
+
+            const auto info =
+                reinterpret_cast<const VkLayerInstanceCreateInfo*>(i);
+            if (info->function != VK_LAYER_LINK_INFO) {
+                continue;
+            }
+            return info;
+        }
+        return static_cast<const VkLayerInstanceCreateInfo*>(nullptr);
+    }();
 
     if (!link_info || !link_info->u.pLayerInfo) {
         return VK_ERROR_INITIALIZATION_FAILED;
@@ -161,8 +175,22 @@ static VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    const auto create_info = find_link<VkLayerDeviceCreateInfo>(
-        pCreateInfo, VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO);
+    const auto create_info = [&]() -> auto {
+        for (auto i = static_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+             i; i = i->pNext) {
+            if (i->sType != VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO) {
+                continue;
+            }
+
+            const auto info =
+                reinterpret_cast<const VkLayerDeviceCreateInfo*>(i);
+            if (info->function != VK_LAYER_LINK_INFO) {
+                continue;
+            }
+            return info;
+        }
+        return static_cast<const VkLayerDeviceCreateInfo*>(nullptr);
+    }();
     if (!create_info || !create_info->u.pLayerInfo) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
@@ -595,8 +623,9 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
         return;
     }
 
-    if (const auto alf = find_next<VkPhysicalDeviceAntiLagFeaturesAMD>(
-            pFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ANTI_LAG_FEATURES_AMD);
+    if (const auto alf =
+            vku::FindStructInPNextChain<VkPhysicalDeviceAntiLagFeaturesAMD>(
+                pFeatures->pNext);
         alf) {
 
         alf->antiLag = context->supports_required_extensions;
@@ -673,9 +702,9 @@ static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
         return VK_SUCCESS;
     }
 
-    const auto lsc = find_next<VkLatencySurfaceCapabilitiesNV>(
-        pSurfaceCapabilities,
-        VK_STRUCTURE_TYPE_LATENCY_SURFACE_CAPABILITIES_NV);
+    const auto lsc =
+        vku::FindStructInPNextChain<VkLatencySurfaceCapabilitiesNV>(
+            pSurfaceCapabilities->pNext);
     if (!lsc) {
         return VK_SUCCESS;
     }
