@@ -467,14 +467,17 @@ QueueSubmit(VkQueue queue, std::uint32_t submit_count,
 
 // The logic for this function is identical to vkSubmitInfo.
 static VKAPI_ATTR VkResult VKAPI_CALL
-QueueSubmit2(VkQueue queue, std::uint32_t submit_count,
-             const VkSubmitInfo2* submit_infos, VkFence fence) {
+QueueSubmit2Impl(VkQueue queue, std::uint32_t submit_count,
+                 const VkSubmitInfo2* submit_infos, VkFence fence,
+                 const bool should_use_khr) {
 
     const auto context = layer_context.get_context(queue);
     const auto& vtable = context->device.vtable;
+    const auto& queue_submit_func =
+        should_use_khr ? vtable.QueueSubmit2KHR : vtable.QueueSubmit2;
 
     if (!submit_count || !context->should_inject_timestamps()) {
-        return vtable.QueueSubmit2(queue, submit_count, submit_infos, fence);
+        return queue_submit_func(queue, submit_count, submit_infos, fence);
     }
 
     using cbs_t = std::vector<VkCommandBufferSubmitInfo>;
@@ -512,7 +515,7 @@ QueueSubmit2(VkQueue queue, std::uint32_t submit_count,
             return next_submit;
         });
 
-    if (const auto result = vtable.QueueSubmit2(
+    if (const auto result = queue_submit_func(
             queue, static_cast<std::uint32_t>(std::size(next_submits)),
             std::data(next_submits), fence);
         result != VK_SUCCESS) {
@@ -529,10 +532,15 @@ QueueSubmit2(VkQueue queue, std::uint32_t submit_count,
 }
 
 static VKAPI_ATTR VkResult VKAPI_CALL
+QueueSubmit2(VkQueue queue, std::uint32_t submit_count,
+             const VkSubmitInfo2* submit_info, VkFence fence) {
+    return QueueSubmit2Impl(queue, submit_count, submit_info, fence, false);
+}
+
+static VKAPI_ATTR VkResult VKAPI_CALL
 QueueSubmit2KHR(VkQueue queue, std::uint32_t submit_count,
                 const VkSubmitInfo2* submit_info, VkFence fence) {
-    // Just forward to low_latency::QueueSubmit2 here.
-    return low_latency::QueueSubmit2(queue, submit_count, submit_info, fence);
+    return QueueSubmit2Impl(queue, submit_count, submit_info, fence, true);
 }
 
 static VKAPI_ATTR VkResult VKAPI_CALL
@@ -645,13 +653,18 @@ static VKAPI_ATTR VkResult VKAPI_CALL EnumerateDeviceExtensionProperties(
     return VK_SUCCESS;
 }
 
-static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
-    VkPhysicalDevice physical_device, VkPhysicalDeviceFeatures2* pFeatures) {
+static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2Impl(
+    VkPhysicalDevice physical_device, VkPhysicalDeviceFeatures2* pFeatures,
+    const bool should_use_khr) {
 
     const auto context = layer_context.get_context(physical_device);
     const auto& vtable = context->instance.vtable;
 
-    vtable.GetPhysicalDeviceFeatures2(physical_device, pFeatures);
+    if (should_use_khr) {
+        vtable.GetPhysicalDeviceFeatures2KHR(physical_device, pFeatures);
+    } else {
+        vtable.GetPhysicalDeviceFeatures2(physical_device, pFeatures);
+    }
 
     // Don't provide AntiLag if we're exposing reflex - VK_NV_low_latency2 uses
     // VkSurfaceCapabilities2KHR to determine if a surface is capable of reflex
@@ -669,10 +682,16 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
     }
 }
 
+static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
+    VkPhysicalDevice physical_device, VkPhysicalDeviceFeatures2* pFeatures) {
+
+    GetPhysicalDeviceFeatures2Impl(physical_device, pFeatures, false);
+}
+
 static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2KHR(
     VkPhysicalDevice physical_device, VkPhysicalDeviceFeatures2KHR* pFeatures) {
 
-    return GetPhysicalDeviceFeatures2(physical_device, pFeatures);
+    GetPhysicalDeviceFeatures2Impl(physical_device, pFeatures, true);
 }
 
 static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties(
@@ -694,15 +713,18 @@ static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties(
     }
 }
 
-// Identical logic to GetPhysicalDeviceProperties.
-static VKAPI_ATTR void VKAPI_CALL
-GetPhysicalDeviceProperties2(VkPhysicalDevice physical_device,
-                             VkPhysicalDeviceProperties2* pProperties) {
+static VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceProperties2Impl(
+    VkPhysicalDevice physical_device, VkPhysicalDeviceProperties2* pProperties,
+    const bool should_use_khr) {
 
     const auto context = layer_context.get_context(physical_device);
     const auto& vtable = context->instance.vtable;
 
-    vtable.GetPhysicalDeviceProperties2(physical_device, pProperties);
+    if (should_use_khr) {
+        vtable.GetPhysicalDeviceProperties2KHR(physical_device, pProperties);
+    } else {
+        vtable.GetPhysicalDeviceProperties2(physical_device, pProperties);
+    }
 
     if (layer_context.should_spoof_nvidia) {
         pProperties->properties.vendorID = LayerContext::NVIDIA_VENDOR_ID;
@@ -713,10 +735,17 @@ GetPhysicalDeviceProperties2(VkPhysicalDevice physical_device,
     }
 }
 
+// Identical logic to GetPhysicalDeviceProperties.
+static VKAPI_ATTR void VKAPI_CALL
+GetPhysicalDeviceProperties2(VkPhysicalDevice physical_device,
+                             VkPhysicalDeviceProperties2* pProperties) {
+    GetPhysicalDeviceProperties2Impl(physical_device, pProperties, false);
+}
+
 static VKAPI_ATTR void VKAPI_CALL
 GetPhysicalDeviceProperties2KHR(VkPhysicalDevice physical_device,
                                 VkPhysicalDeviceProperties2* pProperties) {
-    return GetPhysicalDeviceProperties2(physical_device, pProperties);
+    GetPhysicalDeviceProperties2Impl(physical_device, pProperties, true);
 }
 
 static VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
